@@ -8,7 +8,7 @@ Original file is located at
 """
 
 # Install dependencies as needed:
-!pip install kagglehub[pandas-datasets]
+# pip install kagglehub[pandas-datasets]
 
 # Install dependencies as needed:
 # pip install kagglehub[pandas-datasets]
@@ -47,14 +47,7 @@ from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression
 
 from sklearn.metrics import mean_squared_error
-
-df.drop('Startup Name',axis=1,inplace=True)
-
-df.head()
-
-df.groupby('Country')[id].count()
-
-df['Industry'].describe()
+df.info()
 
 num_countries = df['Country'].nunique()
 print("Number of unique countries:", num_countries)
