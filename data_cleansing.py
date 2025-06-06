@@ -8,7 +8,7 @@ Original file is located at
 """
 
 # Install dependencies as needed:
-# pip install kagglehub[pandas-datasets]
+# pip install kagglehub[pandas-datasets
 
 # Install dependencies as needed:
 # pip install kagglehub[pandas-datasets]
