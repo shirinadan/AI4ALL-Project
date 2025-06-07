@@ -46,6 +46,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression
 
+
 from sklearn.metrics import mean_squared_error
 df.info()
 
@@ -54,3 +55,61 @@ print("Number of unique countries:", num_countries)
 row_counts_per_country = df['Country'].value_counts()
 
 print(row_counts_per_country)
+
+print("Values in 'Acquired?':")
+print(df['Acquired?'].value_counts())
+
+print("\n" + "="*30 + "\n") # Separator
+
+# See what the current values are in the 'IPO?' column
+print("Values in 'IPO?':")
+print(df['IPO?'].value_counts())
+
+# --- Assuming the values are 'Yes' and 'No' ---
+# Create a mapping dictionary
+binary_map = {'Yes': 1, 'No': 0}
+
+# Apply the map to convert the columns to numbers
+df['Acquired?'] = df['Acquired?'].map(binary_map)
+df['IPO?'] = df['IPO?'].map(binary_map)
+
+print("\nData types after converting binary columns:")
+df.info()
+
+# Check the 'Industry' column for consistency
+print("--- Top 15 Industries ---")
+print(df['Industry'].value_counts().head(15))
+
+print("\n" + "="*30 + "\n")
+
+# Check the 'Funding Stage' column
+print("--- Funding Stages ---")
+print(df['Funding Stage'].value_counts())
+
+print("\n" + "="*30 + "\n")
+
+# Check the 'Country' column
+print("--- Top 15 Countries ---")
+print(df['Country'].value_counts().head(15))
+
+# Set up a figure for multiple plots
+plt.figure(figsize=(18, 6))
+plt.suptitle('Distributions of Key Numerical Features', fontsize=16)
+
+# Plot for Total Funding
+plt.subplot(1, 3, 1) # (1 row, 3 columns, 1st plot)
+sns.boxplot(y=df['Total Funding ($M)'])
+plt.title('Total Funding')
+
+# Plot for Annual Revenue
+plt.subplot(1, 3, 2) # (1 row, 3 columns, 2nd plot)
+sns.boxplot(y=df['Annual Revenue ($M)'])
+plt.title('Annual Revenue')
+
+# Plot for Number of Employees
+plt.subplot(1, 3, 3) # (1 row, 3 columns, 3rd plot)
+sns.boxplot(y=df['Number of Employees'])
+plt.title('Number of Employees')
+
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+plt.show()
