@@ -37,10 +37,31 @@ df.info()
 
 # null counts
 print(df.isna().sum())
-
+print()
 # no null, probably already been cleaned
 
 df_with_numeric_features = df.select_dtypes(exclude=['object'])
 print("Numeric features:")
 for col in df_with_numeric_features:
     print(f"{col}")
+print()
+
+df_with_non_numeric_features = df.select_dtypes(include=['object'])
+print("Non-numeric columns:")
+for col in df_with_non_numeric_features:
+    print(f"{col}")
+
+print()
+# removing dups
+column_names = df.columns.tolist()
+print("Col names: ", column_names)
+df.drop_duplicates(subset=column_names, keep='last',inplace=True)
+print("Number of rows after removing dups: ", len(df))
+
+#no duplicates found
+
+# checking for structural errors
+print(df['Country'].value_counts())
+for col in df_with_non_numeric_features:
+    print(df[col].value_counts())
+    print()
