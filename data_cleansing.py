@@ -8,10 +8,8 @@ Original file is located at
 """
 
 # Install dependencies as needed:
-# pip install kagglehub[pandas-datasets]
+# pip install kagglehub[pandas-datasets
 
-# Install dependencies as needed:
-# pip install kagglehub[pandas-datasets]
 import kagglehub
 from kagglehub import KaggleDatasetAdapter
 
@@ -28,8 +26,6 @@ df = kagglehub.load_dataset(
   # documenation for more information:
   # https://github.com/Kaggle/kagglehub/blob/main/README.md#kaggledatasetadapterpandas
 )
-
-print("First 5 records:", df.head())
 
 import pandas as pd
 import numpy as np
@@ -48,13 +44,23 @@ from sklearn.linear_model import LinearRegression
 
 
 from sklearn.metrics import mean_squared_error
-df.info()
 
-num_countries = df['Country'].nunique()
-print("Number of unique countries:", num_countries)
-row_counts_per_country = df['Country'].value_counts()
+# change categorical "StartupName" to numeric "ID"
 
-print(row_counts_per_country)
+df['StartupID'] = df['Startup Name'].str.extract(r'_(\d+)', expand = False).astype('Int64')
+# new functions used:
+# .str.extract() --> a string accessor method that extract specific patterns from string columns.
+# .astype(int) --> converts the extracted number from string to integer type.
+
+df = df.drop(columns = ['Startup Name'])
+cols = list(df.columns)
+cols.remove('StartupID')
+cols.insert(0, 'StartupID')
+df = df[cols]
+
+
+
+print(df.head(50))
 
 print("Values in 'Acquired?':")
 print(df['Acquired?'].value_counts())
