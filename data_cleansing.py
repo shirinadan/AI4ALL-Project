@@ -6,6 +6,9 @@ This script loads the Global Startup Success Dataset, performs cleaning operatio
 and conducts initial exploratory data analysis.
 """
 
+# Install dependencies as needed:
+# pip install kagglehub[pandas-datasets
+
 # =============================================================================
 # 1. IMPORT LIBRARIES
 # =============================================================================
@@ -97,64 +100,6 @@ print("Data types after initial cleaning:")
 df.info()
 print("\n" + "="*50 + "\n")
 
-
-# =============================================================================
-# 4.5 FEATURE ENGINEERING
-# =============================================================================
-print("--- Feature Engineering ---")
-
-# 1. Create 'Startup Age'
-print("Creating 'Startup Age' feature...")
-current_year = datetime.datetime.now().year
-df['Startup Age'] = current_year - df['Founded Year']
-print("Done.")
-print("\n" + "="*30 + "\n")
-
-# 2. Engineer Financial Ratios
-print("Creating financial ratio features...")
-# Replace 0s in 'Number of Employees' with NaN to avoid division by zero errors, then fill resulting NaNs
-df['Number of Employees'] = df['Number of Employees'].replace(0, np.nan)
-df['Funding per Employee'] = df['Total Funding ($M)'] / df['Number of Employees']
-df['Revenue per Employee'] = df['Annual Revenue ($M)'] / df['Number of Employees']
-# Fill any potential NaN/inf values in the new ratio columns with 0
-df[['Funding per Employee', 'Revenue per Employee']] = df[['Funding per Employee', 'Revenue per Employee']].fillna(0)
-df.replace([np.inf, -np.inf], 0, inplace=True)
-print("Done.")
-print("\n" + "="*30 + "\n")
-
-# 3. Advanced Encoding for Categorical Features
-print("Applying advanced encoding to categorical features...")
-# Frequency Encoding for 'Country'
-country_freq = df['Country'].value_counts(normalize=True)
-df['Country_Encoded'] = df['Country'].map(country_freq)
-
-# One-Hot Encoding for 'Funding Stage'
-ohe = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
-funding_stage_encoded = ohe.fit_transform(df[['Funding Stage']])
-funding_stage_df = pd.DataFrame(funding_stage_encoded, columns=ohe.get_feature_names_out(['Funding Stage']))
-df = pd.concat([df.reset_index(drop=True), funding_stage_df], axis=1)
-
-# Drop original columns that have been encoded
-df = df.drop(columns=['Country', 'Funding Stage'])
-print("Done.")
-print("\n" + "="*30 + "\n")
-
-
-# 4. Extract Information from 'Tech Stack'
-print("Extracting features from 'Tech Stack'...")
-df['Uses_Python'] = df['Tech Stack'].str.contains('Python', case=False, na=False).astype(int)
-df['Uses_Java'] = df['Tech Stack'].str.contains('Java', case=False, na=False).astype(int)
-df['Uses_Nodejs'] = df['Tech Stack'].str.contains('Node.js', case=False, na=False).astype(int)
-df['Uses_AI'] = df['Tech Stack'].str.contains('AI', case=False, na=False).astype(int)
-
-# Drop the original 'Tech Stack' column
-df = df.drop(columns=['Tech Stack'])
-print("Done.")
-print("\n" + "="*30 + "\n")
-
-print("DataFrame head after feature engineering:")
-print(df.head())
-print("\n" + "="*50 + "\n")
 
 # =============================================================================
 # 5. EXPLORATORY DATA ANALYSIS (EDA)
