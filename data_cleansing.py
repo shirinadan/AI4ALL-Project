@@ -6,6 +6,9 @@ This script loads the Global Startup Success Dataset, performs cleaning operatio
 and conducts initial exploratory data analysis.
 """
 
+# Install dependencies as needed:
+# pip install kagglehub[pandas-datasets
+
 # =============================================================================
 # 1. IMPORT LIBRARIES
 # =============================================================================
