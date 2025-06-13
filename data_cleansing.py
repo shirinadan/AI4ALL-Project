@@ -3,7 +3,7 @@
 Data Cleansing and Exploration of Global Startup Success Dataset
 
 This script loads the Global Startup Success Dataset, performs cleaning operations,
-feature engineering, and conducts initial exploratory data analysis.
+feature engineering, outlier handling, scaling, and feature selection.
 """
 
 # =============================================================================
@@ -34,7 +34,8 @@ from mlxtend.plotting import plot_sequential_feature_selection as plot_sfs
 # Set pandas display option to show all columns
 pd.set_option('display.max_columns', None)
 
-# Load the dataset using KaggleHub
+# Load the dataset using the older KaggleHub function to avoid environment issues
+# A DeprecationWarning is expected and can be ignored for now.
 print("Loading dataset...")
 file_path = "global_startup_success_dataset.csv"
 df = kagglehub.load_dataset(
@@ -53,15 +54,6 @@ print("First 5 records of the dataset:")
 print(df.head())
 print("\n" + "="*50 + "\n")
 
-print("Dataset Information:")
-df.info()
-print("\n" + "="*50 + "\n")
-
-# Check for null values
-print("Null value counts per column:")
-print(df.isna().sum())
-print("\n" + "="*50 + "\n")
-
 # Check for and remove duplicates
 print(f"Number of rows before removing duplicates: {len(df)}")
 df.drop_duplicates(inplace=True)
@@ -75,28 +67,23 @@ print("\n" + "="*50 + "\n")
 print("--- Cleaning and Preprocessing ---")
 
 # Convert 'Startup Name' to a numeric 'StartupID'
-print("Converting 'Startup Name' to numeric 'StartupID'...")
 df['StartupID'] = df['Startup Name'].str.extract(r'_(\d+)', expand=False).astype('Int64')
-df = df.drop(columns=['Startup Name'])
+df = df.drop(columns=['Startup Name'], errors='ignore')
 # Move StartupID to the first column
-cols = list(df.columns)
-cols.remove('StartupID')
-cols.insert(0, 'StartupID')
-df = df[cols]
+if 'StartupID' in df.columns:
+    cols = list(df.columns)
+    cols.remove('StartupID')
+    cols.insert(0, 'StartupID')
+    df = df[cols]
 print("'StartupID' created and moved to the front.")
 print("\n" + "="*30 + "\n")
 
 # Convert binary categorical columns ('Acquired?', 'IPO?') to numeric (0/1)
-print("Converting binary columns ('Acquired?', 'IPO?') to numeric...")
 binary_map = {'Yes': 1, 'No': 0}
 df['Acquired?'] = df['Acquired?'].map(binary_map)
 df['IPO?'] = df['IPO?'].map(binary_map)
 print("Binary columns converted.")
 print("\n" + "="*30 + "\n")
-
-print("Data types after initial cleaning:")
-df.info()
-print("\n" + "="*50 + "\n")
 
 
 # =============================================================================
@@ -105,104 +92,137 @@ print("\n" + "="*50 + "\n")
 print("--- Feature Engineering ---")
 
 # 1. Create 'Startup Age'
-print("Creating 'Startup Age' feature...")
 current_year = datetime.datetime.now().year
 df['Startup Age'] = current_year - df['Founded Year']
-print("Done.")
-print("\n" + "="*30 + "\n")
+print("'Startup Age' feature created.")
 
 # 2. Engineer Financial Ratios
-print("Creating financial ratio features...")
-# Replace 0s in 'Number of Employees' with NaN to avoid division by zero errors, then fill resulting NaNs
 df['Number of Employees'] = df['Number of Employees'].replace(0, np.nan)
 df['Funding per Employee'] = df['Total Funding ($M)'] / df['Number of Employees']
 df['Revenue per Employee'] = df['Annual Revenue ($M)'] / df['Number of Employees']
-# Fill any potential NaN/inf values in the new ratio columns with 0
 df[['Funding per Employee', 'Revenue per Employee']] = df[['Funding per Employee', 'Revenue per Employee']].fillna(0)
 df.replace([np.inf, -np.inf], 0, inplace=True)
-print("Done.")
-print("\n" + "="*30 + "\n")
+print("Financial ratio features created.")
 
 # 3. Advanced Encoding for Categorical Features
-print("Applying advanced encoding to categorical features...")
-# Frequency Encoding for 'Country'
 country_freq = df['Country'].value_counts(normalize=True)
 df['Country_Encoded'] = df['Country'].map(country_freq)
 
-# One-Hot Encoding for 'Funding Stage'
+cols_to_encode = ['Funding Stage', 'Industry']
 ohe = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
-funding_stage_encoded = ohe.fit_transform(df[['Funding Stage']])
-funding_stage_df = pd.DataFrame(funding_stage_encoded, columns=ohe.get_feature_names_out(['Funding Stage']))
-df = pd.concat([df.reset_index(drop=True), funding_stage_df], axis=1)
-
-# Drop original columns that have been encoded
-df = df.drop(columns=['Country', 'Funding Stage'])
-print("Done.")
-print("\n" + "="*30 + "\n")
-
+encoded_data = ohe.fit_transform(df[cols_to_encode])
+encoded_df = pd.DataFrame(encoded_data, columns=ohe.get_feature_names_out(cols_to_encode))
+df = pd.concat([df.reset_index(drop=True), encoded_df], axis=1)
+print("Categorical features encoded.")
 
 # 4. Extract Information from 'Tech Stack'
-print("Extracting features from 'Tech Stack'...")
 df['Uses_Python'] = df['Tech Stack'].str.contains('Python', case=False, na=False).astype(int)
 df['Uses_Java'] = df['Tech Stack'].str.contains('Java', case=False, na=False).astype(int)
 df['Uses_Nodejs'] = df['Tech Stack'].str.contains('Node.js', case=False, na=False).astype(int)
 df['Uses_AI'] = df['Tech Stack'].str.contains('AI', case=False, na=False).astype(int)
+print("Tech Stack features extracted.")
 
-# Drop the original 'Tech Stack' column
-df = df.drop(columns=['Tech Stack'])
-print("Done.")
-print("\n" + "="*30 + "\n")
-
-print("DataFrame head after feature engineering:")
-print(df.head())
+# 5. Drop original columns that have been transformed
+df = df.drop(columns=['Country', 'Funding Stage', 'Industry', 'Tech Stack'], errors='ignore')
+print("Original transformed columns dropped.")
 print("\n" + "="*50 + "\n")
 
 
 # =============================================================================
-# 5. EXPLORATORY DATA ANALYSIS (EDA)
+# 4.6 LOG TRANSFORMATION FOR SKEWED DATA
 # =============================================================================
-print("--- Exploratory Data Analysis ---")
+print("--- Log Transformation for Skewed Data ---")
+skewed_cols = ['Total Funding ($M)', 'Number of Employees', 'Annual Revenue ($M)',
+               'Valuation ($B)', 'Customer Base (Millions)', 'Social Media Followers',
+               'Funding per Employee', 'Revenue per Employee']
+log_skewed_cols = []
 
-# Separate numeric and non-numeric columns for analysis
-numeric_features = df.select_dtypes(include=np.number).columns.tolist()
-non_numeric_features = df.select_dtypes(include='object').columns.tolist()
+for col in skewed_cols:
+    # Check if column exists before trying to transform it
+    if col in df.columns:
+        df[col] = np.log1p(df[col])
+        new_col_name = f'Log_{col}'
+        df.rename(columns={col: new_col_name}, inplace=True)
+        log_skewed_cols.append(new_col_name)
 
-print("Numeric features identified:")
-print(numeric_features)
-print("\nNon-numeric features identified (should be few after encoding):")
-print(non_numeric_features)
-print("\n" + "="*30 + "\n")
+print("Skewed data has been log-transformed.")
+print("\n" + "="*50 + "\n")
 
-# Analyze value counts for any remaining categorical features
-if non_numeric_features:
-    for col in non_numeric_features:
-        print(f"--- Value Counts for '{col}' ---")
-        print(df[col].value_counts().head(15))
-        print()
+
+# =============================================================================
+# 4.7 OUTLIER DETECTION AND HANDLING (IQR METHOD)
+# =============================================================================
+print("--- Outlier Detection and Handling using IQR ---")
+# Only apply outlier detection to the continuous log-transformed columns
+outlier_mask = pd.Series(False, index=df.index)
+
+for col in log_skewed_cols:
+    Q1 = df[col].quantile(0.25)
+    Q3 = df[col].quantile(0.75)
+    IQR = Q3 - Q1
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+    outlier_mask = outlier_mask | (df[col] < lower_bound) | (df[col] > upper_bound)
+
+print(f"Number of outlier rows found: {outlier_mask.sum()}")
+df_cleaned = df[~outlier_mask].copy()
+print(f"Original DataFrame shape: {df.shape}")
+print(f"Cleaned DataFrame shape after removing outliers: {df_cleaned.shape}")
+print("\n" + "="*50 + "\n")
+
+
+# =============================================================================
+# 5. FEATURE SCALING (STANDARDIZATION)
+# =============================================================================
+# Add a check to prevent scaling an empty dataframe
+if not df_cleaned.empty:
+    print("--- Feature Scaling ---")
+    scaler = StandardScaler()
+    features_to_scale = df_cleaned.select_dtypes(include=np.number).columns.drop(['StartupID', 'Success Score'])
+    df_cleaned[features_to_scale] = scaler.fit_transform(df_cleaned[features_to_scale])
+
+    print("Numeric features have been standardized.")
+    print("Head of scaled data:")
+    print(df_cleaned.head())
 else:
-    print("No non-numeric features remain to be analyzed.")
+    print("Skipping Feature Scaling because the dataframe is empty after outlier removal.")
 print("\n" + "="*50 + "\n")
 
-# Visualize distributions of key numerical features using boxplots
-print("Generating boxplots for key numerical features...")
-plt.figure(figsize=(18, 6))
-plt.suptitle('Distributions of Key Numerical Features', fontsize=16)
 
-# Plot for Total Funding
-plt.subplot(1, 3, 1) # (1 row, 3 columns, 1st plot)
-sns.boxplot(y=df['Total Funding ($M)'])
-plt.title('Total Funding')
+# =============================================================================
+# 6. FEATURE SELECTION
+# =============================================================================
+if not df_cleaned.empty:
+    print("--- Feature Selection ---")
+    # Define features (X) and target (y)
+    X = df_cleaned.drop(columns=['StartupID', 'Success Score'])
+    y = df_cleaned['Success Score']
 
-# Plot for Annual Revenue
-plt.subplot(1, 3, 2) # (1 row, 3 columns, 2nd plot)
-sns.boxplot(y=df['Annual Revenue ($M)'])
-plt.title('Annual Revenue')
+    # 1. Correlation Matrix
+    print("Generating correlation matrix heatmap...")
+    plt.figure(figsize=(20, 18))
+    correlation_matrix = X.corr()
+    sns.heatmap(correlation_matrix, cmap='coolwarm')
+    plt.title('Feature Correlation Matrix')
+    plt.show()
 
-# Plot for Number of Employees
-plt.subplot(1, 3, 3) # (1 row, 3 columns, 3rd plot)
-sns.boxplot(y=df['Number of Employees'])
-plt.title('Number of Employees')
+    # 2. Mutual Information
+    print("\nCalculating Mutual Information scores...")
+    mi_scores = mutual_info_regression(X, y)
+    mi_scores = pd.Series(mi_scores, name="MI Scores", index=X.columns)
+    mi_scores = mi_scores.sort_values(ascending=False)
+    print("Top 10 features based on Mutual Information:")
+    print(mi_scores.head(10))
+else:
+    print("Skipping Feature Selection because the dataframe is empty.")
+print("\n" + "="*50 + "\n")
 
-plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-plt.show()
-print("Script execution complete.")
+
+# =============================================================================
+# 7. FINAL DATA PREPARATION COMPLETE
+# =============================================================================
+print("Data preparation, feature engineering, and selection steps are complete.")
+if not df_cleaned.empty:
+    print("The 'df_cleaned' DataFrame is ready for machine learning.")
+else:
+    print("Warning: The 'df_cleaned' DataFrame is empty. Review outlier detection parameters.")
