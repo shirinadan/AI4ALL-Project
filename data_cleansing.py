@@ -226,3 +226,6 @@ if not df_cleaned.empty:
     print("The 'df_cleaned' DataFrame is ready for machine learning.")
 else:
     print("Warning: The 'df_cleaned' DataFrame is empty. Review outlier detection parameters.")
+
+# Save cleaned Dataset to csv
+df_cleaned.to_csv('cleaned_startup_data.csv', index=False)
