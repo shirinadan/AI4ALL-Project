@@ -191,6 +191,24 @@ for col in skewed_cols:
 print("Skewed data has been log-transformed.")
 print("\n" + "=" * 50 + "\n")
 
+# visualizations for log transformation
+print("--- Generating Presentation Visuals ---")
+
+# 1. Geographic Heatmap of Startups
+country_counts = df["Country"].value_counts().reset_index()
+country_counts.columns = ["Country", "Count"]
+fig = px.choropleth(
+    country_counts,
+    locations="Country",
+    locationmode="country names",
+    color="Count",
+    hover_name="Country",
+    color_continuous_scale=px.colors.sequential.Plasma,
+    title="Geographic Distribution of Startups in the Dataset",
+)
+fig.show()
+print("Geographic heatmap generated.")
+print("\n" + "=" * 50 + "\n")
 
 # =============================================================================
 # 4.7 OUTLIER DETECTION AND HANDLING (IQR METHOD)
