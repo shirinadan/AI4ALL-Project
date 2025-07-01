@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import kagglehub
 from kagglehub import KaggleDatasetAdapter
+import plotly.express as px
 
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import (
@@ -65,7 +66,10 @@ df.drop_duplicates(inplace=True)
 print(f"Number of rows after removing duplicates: {len(df)}")
 print("\n" + "=" * 50 + "\n")
 
-# Exploratory data visualization
+
+# =============================================================================
+# 3.5 EXPLORATORY DATA VISUALIZATION
+# =============================================================================
 print("--- Generating Presentation Visuals ---")
 
 # 1. Geographic Heatmap of Startups
@@ -83,6 +87,8 @@ fig = px.choropleth(
 fig.show()
 print("Geographic heatmap generated.")
 print("\n" + "=" * 50 + "\n")
+
+
 # =============================================================================
 # 4. DATA CLEANING AND PREPROCESSING
 # =============================================================================
@@ -180,6 +186,9 @@ skewed_cols = [
 ]
 log_skewed_cols = []
 
+# Store a copy of the pre-transformed data for visualization
+df_before_log = df.copy()
+
 for col in skewed_cols:
     # Check if column exists before trying to transform it
     if col in df.columns:
@@ -191,24 +200,29 @@ for col in skewed_cols:
 print("Skewed data has been log-transformed.")
 print("\n" + "=" * 50 + "\n")
 
-# visualizations for log transformation
-print("--- Generating Presentation Visuals ---")
+# =============================================================================
+# 4.6.5 VISUALIZE LOG TRANSFORMATION
+# =============================================================================
+print("--- Generating Before and After Log Transformation Plot ---")
+plt.figure(figsize=(15, 6))
+plt.suptitle("Effect of Log Transformation on Total Funding", fontsize=16)
 
-# 1. Geographic Heatmap of Startups
-country_counts = df["Country"].value_counts().reset_index()
-country_counts.columns = ["Country", "Count"]
-fig = px.choropleth(
-    country_counts,
-    locations="Country",
-    locationmode="country names",
-    color="Count",
-    hover_name="Country",
-    color_continuous_scale=px.colors.sequential.Plasma,
-    title="Geographic Distribution of Startups in the Dataset",
-)
-fig.show()
-print("Geographic heatmap generated.")
+# Before
+plt.subplot(1, 2, 1)
+sns.histplot(df_before_log["Total Funding ($M)"], kde=True, bins=50)
+plt.title("Before Transformation (Skewed)")
+plt.xlabel("Total Funding ($M)")
+
+# After
+plt.subplot(1, 2, 2)
+sns.histplot(df["Log_Total Funding ($M)"], kde=True, bins=50, color="green")
+plt.title("After Log Transformation (More Normal)")
+plt.xlabel("Log of Total Funding ($M)")
+
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+plt.show()
 print("\n" + "=" * 50 + "\n")
+
 
 # =============================================================================
 # 4.7 OUTLIER DETECTION AND HANDLING (IQR METHOD)
