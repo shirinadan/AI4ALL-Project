@@ -323,3 +323,5 @@ else:
     print(
         "Warning: The 'df_cleaned' DataFrame is empty. Review outlier detection parameters."
     )
+# Add this to the end of your main script
+df_cleaned.to_csv('cleaned_startup_data.csv', index=False)
