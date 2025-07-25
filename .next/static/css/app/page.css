@@ -1,0 +1,44 @@
+/*!*****************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!./src/app/globals.css ***!
+  \*****************************************************************************************************************************************************************************************************************************************************************/
+body {
+  margin: 5vh 5vw;
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at 20% 30%, #3b82f6 0%, transparent 50%),
+              radial-gradient(circle at 80% 60%, #9333ea 0%, transparent 50%),
+              linear-gradient(135deg, #1e3a8a, #4f46e5, #9333ea);
+  background-blend-mode: screen;
+  min-height: 90vh;
+}
+
+header {
+  color: white;
+  font-size: 2em;
+  text-shadow: 1px 1px 2px rgb(59, 57, 57);
+}
+
+/*!**************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!./src/app/page.css ***!
+  \**************************************************************************************************************************************************************************************************************************************************************/
+h1, p {
+    color: white;
+    text-shadow: 1px 1px 2px rgb(59, 57, 57);
+}
+
+button {
+    background-color: #252174;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px;
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+}

@@ -1,0 +1,19 @@
+{
+  "name": "ai4all-project",
+  "version": "1.0.0",
+  "description": "```\r ⚡ WORK IN PROGRESS\r ```\r  # 🚀 AI4ALL Project (let's create a name later)\r >**Predicting Startup Success with AI Supervision**",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "next": "^15.4.4",
+    "react": "^19.1.0"
+  }
+}
