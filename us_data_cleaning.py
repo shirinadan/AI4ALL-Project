@@ -48,3 +48,5 @@ df.drop(
 # === Final check ===
 print("\n✅ Cleaned shape:", df.shape)
 print(df.head())
+output_path = "data/cleaned_data.csv"
+df.to_csv(output_path, index=False)
