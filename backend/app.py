@@ -9,7 +9,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# Load model and feature template 
+# Load model and feature template
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "random_forest_model.pkl")
 FEATURES_PATH = os.path.join(BASE_DIR, "features_used.json")
@@ -18,10 +18,16 @@ model = joblib.load(MODEL_PATH)
 with open(FEATURES_PATH, "r") as f:
     FEATURE_COLUMNS = json.load(f)
 
+# Load feature names
+with open("features_used.json", "r") as f:
+    features_used = json.load(f)
+
 
 # helper function to normalize features
 def normalize_col(name):
-    return name.lower().strip().replace(" ", "_").replace("-", "_").replace("&", "and")
+    return (
+        name.strip().lower().replace("&", "and")
+    ) 
 
 
 # Categories
@@ -73,26 +79,26 @@ MARKET_CATS = [
 
 # Preprocess
 def preprocess(data):
-    row = {col: 0 for col in FEATURE_COLUMNS}  # start with zeroed-out template
+    row = pd.Series(0, index=features_used)
 
-    # Handle numeric field
-    try:
-        row["founded_year"] = int(data.get("foundedYear", 0))
-    except:
-        row["founded_year"] = 0
+    # Set founded year
+    row["founded_year"] = int(data.get("foundedYear", 0))
 
-    # One-hot encode: industry
-    user_ind = normalize_col(data.get("industry", ""))
-    row[f"industry_{user_ind}"] = 1
+    # Set industry
+    industry = normalize_col(data.get("industry", ""))
+    if industry in row:
+        row[industry] = 1
 
-    # One-hot encode: funding
-    for ftype in data.get("fundingTypes", []):
-        norm_ftype = normalize_col(ftype)
-        row[f"funding_{norm_ftype}"] = 1
+    # Funding types (as-is, no "funding_" prefix)
+    for ft in data.get("fundingTypes", []):
+        ft_norm = normalize_col(ft)
+        if ft_norm in row:
+            row[ft_norm] = 1
 
-    # One-hot encode: market
-    market = normalize_col(data.get("market", ""))
-    row[f"market_{market}"] = 1
+    # Market (example: "Hardware" → "market_ Hardware ")
+    market = "market_ " + data.get("market", "")
+    if market in row:
+        row[market] = 1
 
     return pd.DataFrame([row])
 
