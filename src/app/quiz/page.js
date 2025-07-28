@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState } from 'react'
@@ -114,80 +113,70 @@ export default function BizLensQuiz() {
 
   return (
     <div style={{
+      margin: 0,
+      padding: '2rem',
+      fontFamily: 'Inter, sans-serif',
+      background: `radial-gradient(circle at 20% 30%, #3b82f6 0%, transparent 50%),
+                   radial-gradient(circle at 80% 60%, #9333ea 0%, transparent 50%),
+                   linear-gradient(135deg, #1e3a8a, #4f46e5, #9333ea)`,
+      backgroundBlendMode: 'screen',
       minHeight: '100vh',
       width: '100vw',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      margin: 0,
       boxSizing: 'border-box',
-      overflow: 'auto'
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'flex-start',
+      paddingTop: '2rem'
     }}>
       <div style={{
-        width: '100%',
         maxWidth: '480px',
-        textAlign: 'center'
+        width: '100%',
+        background: 'rgba(255,255,255,0.06)',
+        backdropFilter: 'blur(8px)',
+        borderRadius: '12px',
+        padding: '2rem'
       }}>
-        {/* Logo */}
-        <h1 style={{
-          color: 'white',
-          fontSize: '2.5rem',
-          fontWeight: '300',
-          marginBottom: '3rem',
-          letterSpacing: '1px'
-        }}>
-          BizLens
-        </h1>
-
         {/* Progress Bar */}
         <div style={{
-          width: '100%',
-          height: '4px',
-          backgroundColor: 'rgba(255,255,255,0.3)',
-          borderRadius: '2px',
-          marginBottom: '2rem',
-          overflow: 'hidden'
+          height: '6px',
+          background: 'rgba(255,255,255,0.2)',
+          borderRadius: '3px',
+          overflow: 'hidden',
+          marginBottom: '1.5rem'
         }}>
           <div style={{
             width: `${((currentStep + 1) / questions.length) * 100}%`,
             height: '100%',
-            backgroundColor: 'white',
+            background: 'rgb(255, 255, 255)',
             transition: 'width 0.3s ease'
           }} />
         </div>
 
         {/* Question */}
-        <div style={{
-          marginBottom: '2rem'
+        <h2 style={{
+          color: 'white',
+          fontSize: '1.5rem',
+          marginBottom: '1rem',
+          textAlign: 'center'
         }}>
-          <h2 style={{
-            color: 'white',
-            fontSize: '1.5rem',
-            fontWeight: '500',
-            marginBottom: '0.5rem',
-            lineHeight: '1.3'
+          {currentQuestion.title}
+        </h2>
+        {currentQuestion.subtitle && (
+          <p style={{ 
+            color: 'rgba(255,255,255,0.8)', 
+            marginBottom: '1rem', 
+            fontSize: '1rem',
+            textAlign: 'center'
           }}>
-            {currentQuestion.title}
-          </h2>
-          {currentQuestion.subtitle && (
-            <p style={{
-              color: 'rgba(255,255,255,0.8)',
-              fontSize: '1rem',
-              margin: 0
-            }}>
-              {currentQuestion.subtitle}
-            </p>
-          )}
-        </div>
+            {currentQuestion.subtitle}
+          </p>
+        )}
 
         {/* Answer Options */}
         <div style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px',
+          gap: '1rem',
           marginBottom: '2rem'
         }}>
           {currentQuestion.type === 'industry' && INDUSTRIES.map((industry) => (
@@ -196,15 +185,25 @@ export default function BizLensQuiz() {
               onClick={() => setSelectedIndustry(industry)}
               style={{
                 padding: '16px 24px',
-                backgroundColor: selectedIndustry === industry ? '#e0e7ff' : 'white',
+                background: selectedIndustry === industry ? '#e0e7ff' : 'white',
                 color: selectedIndustry === industry ? '#3730a3' : '#374151',
                 border: 'none',
                 borderRadius: '8px',
-                fontSize: '1rem',
                 fontWeight: '500',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                textAlign: 'center'
+                textAlign: 'center',
+                fontSize: '1rem'
+              }}
+              onMouseEnter={(e) => {
+                if (selectedIndustry !== industry) {
+                  e.target.style.background = '#f0f0f0'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedIndustry !== industry) {
+                  e.target.style.background = 'white'
+                }
               }}
             >
               {industry}
@@ -223,15 +222,25 @@ export default function BizLensQuiz() {
                   onClick={() => toggleFunding(type)}
                   style={{
                     padding: '12px 16px',
-                    backgroundColor: fundingTypes.includes(type) ? '#e0e7ff' : 'white',
+                    background: fundingTypes.includes(type) ? '#e0e7ff' : 'white',
                     color: fundingTypes.includes(type) ? '#3730a3' : '#374151',
                     border: 'none',
                     borderRadius: '8px',
-                    fontSize: '0.9rem',
                     fontWeight: '500',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    fontSize: '0.9rem'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!fundingTypes.includes(type)) {
+                      e.target.style.background = '#f0f0f0'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!fundingTypes.includes(type)) {
+                      e.target.style.background = 'white'
+                    }
                   }}
                 >
                   {type}
@@ -250,14 +259,16 @@ export default function BizLensQuiz() {
               placeholder="e.g. 2018"
               style={{
                 padding: '16px 24px',
-                backgroundColor: 'white',
+                background: 'white',
                 color: '#374151',
                 border: 'none',
                 borderRadius: '8px',
                 fontSize: '1rem',
                 fontWeight: '500',
                 textAlign: 'center',
-                outline: 'none'
+                outline: 'none',
+                width: '100%',
+                boxSizing: 'border-box'
               }}
             />
           )}
@@ -268,7 +279,7 @@ export default function BizLensQuiz() {
               onChange={(e) => setMarket(e.target.value)}
               style={{
                 padding: '16px 24px',
-                backgroundColor: 'white',
+                background: 'white',
                 color: market ? '#374151' : '#9ca3af',
                 border: 'none',
                 borderRadius: '8px',
@@ -276,7 +287,9 @@ export default function BizLensQuiz() {
                 fontWeight: '500',
                 textAlign: 'center',
                 outline: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                width: '100%',
+                boxSizing: 'border-box'
               }}
             >
               <option value="">— select one —</option>
@@ -300,7 +313,7 @@ export default function BizLensQuiz() {
             disabled={currentStep === 0}
             style={{
               padding: '12px 24px',
-              backgroundColor: 'transparent',
+              background: 'transparent',
               color: currentStep === 0 ? 'rgba(255,255,255,0.4)' : 'white',
               border: '2px solid',
               borderColor: currentStep === 0 ? 'rgba(255,255,255,0.4)' : 'white',
@@ -326,12 +339,12 @@ export default function BizLensQuiz() {
             disabled={!canProceed()}
             style={{
               padding: '12px 24px',
-              backgroundColor: canProceed() ? 'white' : 'rgba(255,255,255,0.3)',
+              background: canProceed() ? 'white' : 'rgba(255,255,255,0.3)',
               color: canProceed() ? '#3730a3' : 'rgba(255,255,255,0.6)',
               border: 'none',
               borderRadius: '8px',
               fontSize: '1rem',
-              fontWeight: '600',
+              fontWeight: canProceed() ? '600' : '500',
               cursor: canProceed() ? 'pointer' : 'not-allowed',
               transition: 'all 0.2s ease'
             }}
