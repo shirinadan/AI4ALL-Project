@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 const INDUSTRIES = [
   'Technology',
@@ -88,15 +89,33 @@ export default function BizLensQuiz() {
     }
   }
 
-  function handleSubmit() {
-    const payload = { 
+  const router = useRouter()
+
+  async function handleSubmit() {
+    const payload = {
       industry: selectedIndustry,
-      fundingTypes, 
-      foundedYear, 
-      market 
+      fundingTypes,
+      foundedYear,
+      market
     }
-    console.log('Form submission:', payload)
-    // TODO: send to your backend or navigate to results
+
+    try {
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      const data = await res.json()
+
+      if (res.ok && data && typeof data.score !== 'undefined') {
+        router.push(`/results?score=${encodeURIComponent(data.score)}`)
+      } else {
+        console.error('Unexpected response:', data)
+      }
+    } catch (err) {
+      console.error('Submission failed:', err)
+    }
   }
 
   function canProceed() {
