@@ -1,14 +1,30 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+import os
+import json
 import joblib
 import pandas as pd
-import os
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
-# Load model
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "random_forest_model.pkl")
+# flask setup
+app = Flask(__name__)
+CORS(app)
+
+# Load model and feature template 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "random_forest_model.pkl")
+FEATURES_PATH = os.path.join(BASE_DIR, "features_used.json")
+
 model = joblib.load(MODEL_PATH)
+with open(FEATURES_PATH, "r") as f:
+    FEATURE_COLUMNS = json.load(f)
 
-# Categories should match those used during training
+
+# helper function to normalize features
+def normalize_col(name):
+    return name.lower().strip().replace(" ", "_").replace("-", "_").replace("&", "and")
+
+
+# Categories
 INDUSTRIES = [
     "Technology",
     "Healthcare",
@@ -55,30 +71,33 @@ MARKET_CATS = [
 ]
 
 
+# Preprocess
 def preprocess(data):
-    """Convert incoming JSON into a one-hot encoded DataFrame."""
-    row = {}
-    # numerical feature
-    row["founded_year"] = int(data.get("foundedYear", 0))
+    row = {col: 0 for col in FEATURE_COLUMNS}  # start with zeroed-out template
 
-    # one-hot encode categorical fields
-    for ind in INDUSTRIES:
-        row[f"industry_{ind}"] = 1 if data.get("industry") == ind else 0
+    # Handle numeric field
+    try:
+        row["founded_year"] = int(data.get("foundedYear", 0))
+    except:
+        row["founded_year"] = 0
 
-    funding = data.get("fundingTypes", [])
-    for ft in FUNDING_TYPES:
-        row[f"funding_{ft}"] = 1 if ft in funding else 0
+    # One-hot encode: industry
+    user_ind = normalize_col(data.get("industry", ""))
+    row[f"industry_{user_ind}"] = 1
 
-    for m in MARKET_CATS:
-        row[f"market_{m}"] = 1 if data.get("market") == m else 0
+    # One-hot encode: funding
+    for ftype in data.get("fundingTypes", []):
+        norm_ftype = normalize_col(ftype)
+        row[f"funding_{norm_ftype}"] = 1
+
+    # One-hot encode: market
+    market = normalize_col(data.get("market", ""))
+    row[f"market_{market}"] = 1
 
     return pd.DataFrame([row])
 
 
-app = Flask(__name__)
-CORS(app)
-
-
+# predict route
 @app.route("/predict", methods=["POST"])
 def predict():
     content = request.get_json()
