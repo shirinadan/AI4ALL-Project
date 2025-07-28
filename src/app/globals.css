@@ -13,3 +13,8 @@ header {
   font-size: 2em;
   text-shadow: 1px 1px 2px rgb(59, 57, 57);
 }
+
+body, html {
+  margin: 0;
+  padding: 0;
+}
