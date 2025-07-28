@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSearchParams } from 'next/navigation'
+
 
 const INDUSTRIES = [
   'Technology',
@@ -101,17 +101,19 @@ export default function BizLensQuiz() {
     }
 
     try {
-      const res = await fetch('/predict', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
 
       const data = await res.json()
+      console.log("Prediction response:", data)
 
-      if (res.ok && data && typeof data.score !== 'undefined') {
-        router.push(`/results?score=${encodeURIComponent(data.score)}`)
-      } else {
+      if (res.ok && data && typeof data.success_score !== 'undefined') {
+        router.push(`/results?score=${encodeURIComponent(data.success_score)}`)
+      }
+      else {
         console.error('Unexpected response:', data)
       }
     } catch (err) {
@@ -377,17 +379,3 @@ export default function BizLensQuiz() {
   )
 }
 
-export default function ResultsPage() {
-  const searchParams = useSearchParams()
-  const score = searchParams.get('score')
-  return (
-    <div style={{ padding: '2rem', fontFamily: 'Inter, sans-serif', textAlign: 'center' }}>
-      <h1>Your predicted success score</h1>
-      {score ? (
-        <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{score}</p>
-      ) : (
-        <p>No score available.</p>
-      )}
-    </div>
-  )
-}
