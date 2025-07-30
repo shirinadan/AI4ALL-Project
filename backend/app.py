@@ -103,7 +103,7 @@ def preprocess(data):
     return pd.DataFrame([row])
 
 
-# predict route
+# predict route returns decimal from 0.0 to 1.0
 @app.route("/predict", methods=["POST"])
 def predict():
     content = request.get_json()
@@ -112,7 +112,21 @@ def predict():
     try:
         features = preprocess(content)
         prediction = model.predict(features)[0]
-        return jsonify({"success_score": float(prediction)})
+        # transform raw prediction so that score of 1 is outputed as 0 and score of 1.5 is outputed at 0
+
+        # Define the original range of the raw prediction
+        min_raw_score = 1.0
+        max_raw_score = 1.5
+
+        # Linearly scale the prediction to a 0-1 range
+        # Formula: (value - min) / (max - min)
+        scaled_prediction = (prediction - min_raw_score) / (
+            max_raw_score - min_raw_score
+        )
+
+        # Clip the result to ensure it's always between 0 and 1
+        final_score = max(0.0, min(1.0, scaled_prediction))
+        return jsonify({"success_score": float(final_score)})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
