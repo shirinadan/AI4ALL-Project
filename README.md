@@ -1,11 +1,9 @@
-```
-⚡ WORK IN PROGRESS
-```
- # 🚀 AI4ALL Project (let's create a name later)
+
+ # 🚀 Bizlens 
 >**Predicting Startup Success with AI Supervision**  
 
 ## 🌟 Overview  
-**[our project name] ** is an AI-driven project developed during the AI4ALL 2025 program to explore whether machine learning can help forecast the success of early-stage startups. Using supervised learning and feature engineering, we built a model that analyzes key indicators from startup data to generate a **Success Probability Score** — a metric that can guide founders, investors, and incubators.
+**Bizlens** is an AI-driven project developed during the AI4ALL 2025 program to explore whether machine learning can help forecast the success of early-stage startups. Using supervised learning and feature engineering, we built a model that analyzes key indicators from startup data to generate a **Success Probability Score** — a metric that can guide founders, investors, and incubators.
 
 
 
@@ -31,8 +29,10 @@
 
 
 ## 📈 Results Snapshot  
-> QUOTE
-**TBD**
+> We employed a supervised learning approach using the RandomForestRegressor. This method allowed us to analyze the relationship between various features and their predictive power regarding startup success.
+
+**Our Random Forest Regression model achieved an R² score of 0.6826, indicating it explains about 68% of the variance in startup success scores. 
+The Root Mean Squared Error (RMSE) is 0.0565, and the Mean Absolute Error (MAE) is 0.0380, reflecting a good predictive accuracy with minimal deviation from true values.**
 
 
 
@@ -51,4 +51,5 @@ Developed by **Ebyan Jama, Sarah Toussaint, Victor Olivio, Elisa Yu, and Shirina
 
 ## 🌱 License  
 Open-sourced under MIT License for educational use. Collaboration welcome.
+
 
