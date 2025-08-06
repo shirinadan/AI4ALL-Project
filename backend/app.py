@@ -11,7 +11,7 @@ CORS(app)
 
 # Load model and feature template
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "HistGradientBoostingRegressor.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "random_forest_model.pkl")
 FEATURES_PATH = os.path.join(BASE_DIR, "features_used.json")
 
 model = joblib.load(MODEL_PATH)
