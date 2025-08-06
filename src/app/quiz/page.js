@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import '../globals.css'
+import '../layout.js'
+import './page.css'
 
 
 const INDUSTRIES = [
@@ -85,7 +88,9 @@ export default function BizLensQuiz() {
   function handleNext() {
     if (currentStep < questions.length - 1) {
       setCurrentStep(currentStep + 1)
+      console.log((currentStep + 1) / questions.length * 100 + '% completed')
     } else {
+      console.log("got here")
       handleSubmit()
     }
   }
@@ -100,8 +105,10 @@ export default function BizLensQuiz() {
       market
     }
 
+    console.log(payload);
+
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/predict`, {
+      const res = await fetch('http://localhost:5000/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -134,97 +141,52 @@ export default function BizLensQuiz() {
   const currentQuestion = questions[currentStep]
 
   return (
-    <div style={{
-      margin: 0,
-      padding: '2rem',
-      fontFamily: 'Inter, sans-serif',
-      background: `radial-gradient(circle at 20% 30%, #3b82f6 0%, transparent 50%),
-                   radial-gradient(circle at 80% 60%, #9333ea 0%, transparent 50%),
-                   linear-gradient(135deg, #1e3a8a, #4f46e5, #9333ea)`,
-      backgroundBlendMode: 'screen',
-      minHeight: '100vh',
-      width: '100vw',
-      boxSizing: 'border-box',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'flex-start',
-      paddingTop: '2rem'
-    }}>
-      <div style={{
-        maxWidth: '480px',
-        width: '100%',
-        background: 'rgba(255,255,255,0.06)',
-        backdropFilter: 'blur(8px)',
-        borderRadius: '12px',
-        padding: '2rem'
-      }}>
-        {/* Progress Bar */}
+    <div className="quiz-wrapper">
+      <div className="quiz-container">
+{/* Progress Bar */}
         <div style={{
           height: '6px',
           background: 'rgba(255,255,255,0.2)',
           borderRadius: '3px',
-          overflow: 'hidden',
-          marginBottom: '1.5rem'
+          // overflow: 'hidden',
+          marginBottom: '1.5rem',
+          width: '100%',
         }}>
           <div style={{
             width: `${((currentStep + 1) / questions.length) * 100}%`,
             height: '100%',
+            borderRadius: '3px',
             background: 'rgb(255, 255, 255)',
             transition: 'width 0.3s ease'
           }} />
         </div>
 
         {/* Question */}
-        <h2 style={{
-          color: 'white',
-          fontSize: '1.5rem',
-          marginBottom: '1rem',
-          textAlign: 'center'
-        }}>
+        <h2 className="question-title">
           {currentQuestion.title}
         </h2>
+
         {currentQuestion.subtitle && (
-          <p style={{ 
-            color: 'rgba(255,255,255,0.8)', 
-            marginBottom: '1rem', 
-            fontSize: '1rem',
-            textAlign: 'center'
-          }}>
+          <p className="question-subtitle">
             {currentQuestion.subtitle}
           </p>
         )}
 
         {/* Answer Options */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
-          marginBottom: '2rem'
-        }}>
+        <div className="answers-container">
           {currentQuestion.type === 'industry' && INDUSTRIES.map((industry) => (
             <button
               key={industry}
               onClick={() => setSelectedIndustry(industry)}
-              style={{
-                padding: '16px 24px',
-                background: selectedIndustry === industry ? '#e0e7ff' : 'white',
-                color: selectedIndustry === industry ? '#3730a3' : '#374151',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                textAlign: 'center',
-                fontSize: '1rem'
-              }}
+              className={`answer-button${selectedIndustry === industry ? ' selected' : ''}`}
               onMouseEnter={(e) => {
                 if (selectedIndustry !== industry) {
-                  e.target.style.background = '#f0f0f0'
+                  e.target.classList.add('hover-temp')
                 }
               }}
               onMouseLeave={(e) => {
                 if (selectedIndustry !== industry) {
-                  e.target.style.background = 'white'
+                  e.target.classList.remove('hover-temp')
                 }
               }}
             >
@@ -233,35 +195,20 @@ export default function BizLensQuiz() {
           ))}
 
           {currentQuestion.type === 'funding' && (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-              gap: '12px'
-            }}>
+            <div className="funding-grid">
               {FUNDING_TYPES.map((type) => (
                 <button
                   key={type}
                   onClick={() => toggleFunding(type)}
-                  style={{
-                    padding: '12px 16px',
-                    background: fundingTypes.includes(type) ? '#e0e7ff' : 'white',
-                    color: fundingTypes.includes(type) ? '#3730a3' : '#374151',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    textAlign: 'center',
-                    fontSize: '0.9rem'
-                  }}
+                  className={`funding-button${fundingTypes.includes(type) ? ' selected' : ''}`}
                   onMouseEnter={(e) => {
                     if (!fundingTypes.includes(type)) {
-                      e.target.style.background = '#f0f0f0'
+                      e.target.classList.add('hover-temp')
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!fundingTypes.includes(type)) {
-                      e.target.style.background = 'white'
+                      e.target.classList.remove('hover-temp')
                     }
                   }}
                 >
@@ -279,19 +226,7 @@ export default function BizLensQuiz() {
               value={foundedYear}
               onChange={(e) => setFoundedYear(e.target.value)}
               placeholder="e.g. 2018"
-              style={{
-                padding: '16px 24px',
-                background: 'white',
-                color: '#374151',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '1rem',
-                fontWeight: '500',
-                textAlign: 'center',
-                outline: 'none',
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
+              className="year-input"
             />
           )}
 
@@ -299,20 +234,7 @@ export default function BizLensQuiz() {
             <select
               value={market}
               onChange={(e) => setMarket(e.target.value)}
-              style={{
-                padding: '16px 24px',
-                background: 'white',
-                color: market ? '#374151' : '#9ca3af',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '1rem',
-                fontWeight: '500',
-                textAlign: 'center',
-                outline: 'none',
-                cursor: 'pointer',
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
+              className={`market-select${market ? ' has-value' : ''}`}
             >
               <option value="">— select one —</option>
               {MARKET_CATS.map((cat) => (
@@ -325,51 +247,23 @@ export default function BizLensQuiz() {
         </div>
 
         {/* Navigation */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
+        <div className="navigation">
           <button
             onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
             disabled={currentStep === 0}
-            style={{
-              padding: '12px 24px',
-              background: 'transparent',
-              color: currentStep === 0 ? 'rgba(255,255,255,0.4)' : 'white',
-              border: '2px solid',
-              borderColor: currentStep === 0 ? 'rgba(255,255,255,0.4)' : 'white',
-              borderRadius: '8px',
-              fontSize: '1rem',
-              fontWeight: '500',
-              cursor: currentStep === 0 ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease'
-            }}
+            className={`nav-button${currentStep === 0 ? ' disabled' : ''}`}
           >
             Back
           </button>
 
-          <span style={{
-            color: 'rgba(255,255,255,0.8)',
-            fontSize: '0.9rem'
-          }}>
+          <span className="progress-text">
             {currentStep + 1} of {questions.length}
           </span>
 
           <button
             onClick={handleNext}
             disabled={!canProceed()}
-            style={{
-              padding: '12px 24px',
-              background: canProceed() ? 'white' : 'rgba(255,255,255,0.3)',
-              color: canProceed() ? '#3730a3' : 'rgba(255,255,255,0.6)',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '1rem',
-              fontWeight: canProceed() ? '600' : '500',
-              cursor: canProceed() ? 'pointer' : 'not-allowed',
-              transition: 'all 0.2s ease'
-            }}
+            className={`next-button${!canProceed() ? ' disabled' : ''}`}
           >
             {currentStep === questions.length - 1 ? 'Submit' : 'Next'}
           </button>
