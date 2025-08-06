@@ -6,121 +6,89 @@ import '../globals.css'
 import '../layout.js'
 import './page.css'
 
-
-const INDUSTRIES = [
-  'Technology',
-  'Healthcare', 
-  'Finance',
-  'E-commerce',
-  'Manufacturing',
-  'Education',
-  'Real Estate',
-  'Retail',
-  'Transportation',
-  'Entertainment'
+const fundingTypeFields = [
+  'seed',
+  'venture',
+  'undisclosed',
+  'convertible_note',
+  'debt_financing',
+  'angel',
+  'post_ipo_equity',
+  'post_ipo_debt',
+  'secondary_market',
+  'product_crowdfunding'
 ]
 
-const FUNDING_TYPES = [
-  'Seed',
-  'Convertible Note',
-  'Series A',
-  'Series B',
-  'Series C',
-  'Series D',
-  'Series E',
-  'Debt Financing',
-  'Grant',
-  'Product Crowdfunding',
-  'Equity Crowdfunding',
-  'Private Equity',
-  'Post‑IPO Equity',
-  'Angel',
-  'Undisclosed',
-  'Venture',
-]
-
-const MARKET_CATS = [
-  'Social Television',
-  'Enterprise Search',
-  'Reviews & Recommendations',
-  'Biomass Power Generation',
-  'Minerals',
-  'Parenting',
-  'Transaction Processing',
-  'Hardware',
-  'Auto',
-  'Health Services Industry',
+const roundFields = [
+  'round_A',
+  'round_B',
+  'round_C',
+  'round_D',
+  'round_E',
+  'round_F',
+  'round_G',
+  'round_H',
+  'round_I',
+  'round_J'
 ]
 
 export default function BizLensQuiz() {
-  const [currentStep, setCurrentStep] = useState(0)
-  const [selectedIndustry, setSelectedIndustry] = useState('')
-  const [fundingTypes, setFundingTypes] = useState([])
-  const [foundedYear, setFoundedYear] = useState('')
-  const [market, setMarket] = useState('')
-
-  const questions = [
-    {
-      title: "What industry is your startup in?",
-      type: "industry"
-    },
-    {
-      title: "Which funding types apply?",
-      subtitle: "(select all that apply)",
-      type: "funding"
-    },
-    {
-      title: "In what year was your startup founded?",
-      type: "year"
-    },
-    {
-      title: "What is your primary market category?",
-      type: "market"
-    }
-  ]
-
-  function toggleFunding(type) {
-    setFundingTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-    )
-  }
-
-  function handleNext() {
-    if (currentStep < questions.length - 1) {
-      setCurrentStep(currentStep + 1)
-      console.log((currentStep + 1) / questions.length * 100 + '% completed')
-    } else {
-      console.log("got here")
-      handleSubmit()
-    }
-  }
+  const [formData, setFormData] = useState({
+    funding_rounds: 0,
+    founded_year: 2012,
+    seed: 0,
+    venture: 0,
+    undisclosed: 0,
+    convertible_note: 0,
+    debt_financing: 0,
+    angel: 0,
+    post_ipo_equity: 0,
+    post_ipo_debt: 0,
+    secondary_market: 0,
+    product_crowdfunding: 0,
+    round_A: 0,
+    round_B: 0,
+    round_C: 0,
+    round_D: 0,
+    round_E: 0,
+    round_F: 0,
+    round_G: 0,
+    round_H: 0,
+    round_I: 0,
+    round_J: 0,
+    round_depth: 0,
+    market: 'Software',
+    country_code: 'USA',
+    state_code: 'CA'
+  })
 
   const router = useRouter()
 
-  async function handleSubmit() {
-    const payload = {
-      industry: selectedIndustry,
-      fundingTypes,
-      foundedYear,
-      market
-    }
+  function handleChange(e) {
+    const { name, value, type, checked } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]:
+        type === 'checkbox'
+          ? (checked ? 1 : 0)
+          : type === 'number'
+          ? Number(value)
+          : value
+    }))
+  }
 
-    console.log(payload);
-
+  async function handleSubmit(e) {
+    e.preventDefault()
     try {
       const res = await fetch('http://localhost:5000/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(formData)
       })
-
       const data = await res.json()
-      console.log("Prediction response:", data)
-
-      if (res.ok && data && typeof data.success_score !== 'undefined') {
-        router.push(`/results?score=${encodeURIComponent(data.success_score)}`)
-      }
-      else {
+      if (res.ok && data && typeof data.prediction !== 'undefined') {
+        router.push(`/results?score=${encodeURIComponent(data.prediction)}`)
+      } else {
         console.error('Unexpected response:', data)
       }
     } catch (err) {
@@ -128,147 +96,107 @@ export default function BizLensQuiz() {
     }
   }
 
-  function canProceed() {
-    switch (currentStep) {
-      case 0: return selectedIndustry !== ''
-      case 1: return fundingTypes.length > 0
-      case 2: return foundedYear !== ''
-      case 3: return market !== ''
-      default: return false
-    }
-  }
-
-  const currentQuestion = questions[currentStep]
-
   return (
     <div className="quiz-wrapper">
-      <div className="quiz-container">
-{/* Progress Bar */}
-        <div style={{
-          height: '6px',
-          background: 'rgba(255,255,255,0.2)',
-          borderRadius: '3px',
-          // overflow: 'hidden',
-          marginBottom: '1.5rem',
-          width: '100%',
-        }}>
-          <div style={{
-            width: `${((currentStep + 1) / questions.length) * 100}%`,
-            height: '100%',
-            borderRadius: '3px',
-            background: 'rgb(255, 255, 255)',
-            transition: 'width 0.3s ease'
-          }} />
-        </div>
+      <form className="quiz-container" onSubmit={handleSubmit}>
+        <h2 className="question-title">Enter startup details</h2>
 
-        {/* Question */}
-        <h2 className="question-title">
-          {currentQuestion.title}
-        </h2>
+        <label>Funding Rounds
+          <input
+            type="number"
+            name="funding_rounds"
+            value={formData.funding_rounds}
+            onChange={handleChange}
+          />
+        </label>
 
-        {currentQuestion.subtitle && (
-          <p className="question-subtitle">
-            {currentQuestion.subtitle}
-          </p>
-        )}
+        <label>Founded Year
+          <input
+            type="number"
+            name="founded_year"
+            value={formData.founded_year}
+            onChange={handleChange}
+          />
+        </label>
 
-        {/* Answer Options */}
-        <div className="answers-container">
-          {currentQuestion.type === 'industry' && INDUSTRIES.map((industry) => (
-            <button
-              key={industry}
-              onClick={() => setSelectedIndustry(industry)}
-              className={`answer-button${selectedIndustry === industry ? ' selected' : ''}`}
-              onMouseEnter={(e) => {
-                if (selectedIndustry !== industry) {
-                  e.target.classList.add('hover-temp')
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (selectedIndustry !== industry) {
-                  e.target.classList.remove('hover-temp')
-                }
-              }}
-            >
-              {industry}
-            </button>
+        <fieldset>
+          <legend>Funding Types</legend>
+          {fundingTypeFields.map(ft => (
+            <label key={ft} style={{ display: 'block' }}>
+              <input
+                type="checkbox"
+                name={ft}
+                checked={formData[ft] === 1}
+                onChange={handleChange}
+              />
+              {ft.replace(/_/g, ' ')}
+            </label>
           ))}
+        </fieldset>
 
-          {currentQuestion.type === 'funding' && (
-            <div className="funding-grid">
-              {FUNDING_TYPES.map((type) => (
-                <button
-                  key={type}
-                  onClick={() => toggleFunding(type)}
-                  className={`funding-button${fundingTypes.includes(type) ? ' selected' : ''}`}
-                  onMouseEnter={(e) => {
-                    if (!fundingTypes.includes(type)) {
-                      e.target.classList.add('hover-temp')
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!fundingTypes.includes(type)) {
-                      e.target.classList.remove('hover-temp')
-                    }
-                  }}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-          )}
+        <fieldset>
+          <legend>Rounds</legend>
+          {roundFields.map(rf => (
+            <label key={rf} style={{ display: 'block' }}>
+              <input
+                type="checkbox"
+                name={rf}
+                checked={formData[rf] === 1}
+                onChange={handleChange}
+              />
+              {rf.replace('_', ' ')}
+            </label>
+          ))}
+        </fieldset>
 
-          {currentQuestion.type === 'year' && (
-            <input
-              type="number"
-              min="1900"
-              max={new Date().getFullYear()}
-              value={foundedYear}
-              onChange={(e) => setFoundedYear(e.target.value)}
-              placeholder="e.g. 2018"
-              className="year-input"
-            />
-          )}
+        <label>Round Depth
+          <input
+            type="number"
+            name="round_depth"
+            value={formData.round_depth}
+            onChange={handleChange}
+          />
+        </label>
 
-          {currentQuestion.type === 'market' && (
-            <select
-              value={market}
-              onChange={(e) => setMarket(e.target.value)}
-              className={`market-select${market ? ' has-value' : ''}`}
-            >
-              <option value="">— select one —</option>
-              {MARKET_CATS.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-
-        {/* Navigation */}
-        <div className="navigation">
-          <button
-            onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
-            disabled={currentStep === 0}
-            className={`nav-button${currentStep === 0 ? ' disabled' : ''}`}
+        <label>Market
+          <select
+            name="market"
+            value={formData.market}
+            onChange={handleChange}
           >
-            Back
-          </button>
+            <option value="Software">Software</option>
+            <option value="Hardware">Hardware</option>
+            <option value="Finance">Finance</option>
+          </select>
+        </label>
 
-          <span className="progress-text">
-            {currentStep + 1} of {questions.length}
-          </span>
-
-          <button
-            onClick={handleNext}
-            disabled={!canProceed()}
-            className={`next-button${!canProceed() ? ' disabled' : ''}`}
+        <label>Country Code
+          <select
+            name="country_code"
+            value={formData.country_code}
+            onChange={handleChange}
           >
-            {currentStep === questions.length - 1 ? 'Submit' : 'Next'}
-          </button>
-        </div>
-      </div>
+            <option value="USA">USA</option>
+            <option value="CAN">CAN</option>
+          </select>
+        </label>
+
+        <label>State Code
+          <select
+            name="state_code"
+            value={formData.state_code}
+            onChange={handleChange}
+          >
+            <option value="CA">CA</option>
+            <option value="NY">NY</option>
+            <option value="TX">TX</option>
+          </select>
+        </label>
+
+        <button type="submit" className="answer-button">
+          Predict
+        </button>
+      </form>
     </div>
   )
 }
