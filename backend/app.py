@@ -12,15 +12,14 @@ CORS(app)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-with bz2.BZ2File(os.path.join(BASE_DIR, "vv5_success_model_compressed.pkl"), "rb") as f:
-    model = joblib.load(f)
+model = joblib.load("vv5_success_model_compressed.pkl")
+
 
 with open(os.path.join(BASE_DIR, "vv5_features.json"), "r") as f:
     feature_names = json.load(f)
 
 
 def preprocess_input(user_input_json: dict) -> pd.DataFrame:
-    # Convert incoming JSON to DataFrame
     input_df = pd.DataFrame([user_input_json])
 
     # Handle missing categorical columns
@@ -31,24 +30,26 @@ def preprocess_input(user_input_json: dict) -> pd.DataFrame:
         else:
             input_df[col] = input_df[col].fillna("Unknown")
 
-    # One-hot encode categorical columns
-    encoder = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
-    encoder.fit(pd.DataFrame(columns=categorical_cols))  # Fit structure only
-    encoded_df = pd.DataFrame(
-        encoder.transform(input_df[categorical_cols]),
-        columns=encoder.get_feature_names_out(categorical_cols)
-    )
+    # One-hot encode manually based on vv5_features.json
+    one_hot_encoded = {}
+    for col in categorical_cols:
+        val = input_df[col][0]
+        one_hot_encoded.update({f"{col}_{val}": 1})
 
-    # Drop original categorical columns and combine
+    # Drop original categorical columns
     input_df = input_df.drop(columns=categorical_cols)
-    final_input = pd.concat([input_df, encoded_df], axis=1)
 
-    # Align columns with training features
+    # Merge with one-hot values
+    for key, val in one_hot_encoded.items():
+        input_df[key] = val
+
+    # Fill in any missing features from vv5_features.json
     for col in feature_names:
-        if col not in final_input.columns:
-            final_input[col] = 0  # fill missing with 0
+        if col not in input_df.columns:
+            input_df[col] = 0
 
-    final_input = final_input[feature_names]  # ensure correct column order
+    # Ensure the order
+    final_input = input_df[feature_names]
     return final_input
 
 
@@ -65,4 +66,3 @@ def predict():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
