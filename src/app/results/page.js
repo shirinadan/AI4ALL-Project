@@ -1,6 +1,7 @@
 'use client'
 import { useSearchParams } from 'next/navigation'
 import '../globals.css'
+import './page.css'
 import '../layout.js'
 
 export default function ResultsPage() {
@@ -11,10 +12,18 @@ export default function ResultsPage() {
         <div style={{ padding: '2rem', fontFamily: 'Inter, sans-serif', textAlign: 'center' }}>
             <h1>Your predicted success score</h1>
             {score ? (
-                <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{score}</p>
+                <div className="score-wrapper">
+                    <div className="outer-ring">
+                        <div className="inner-circle">
+                            <div className="score-number">{Number(score).toFixed(3)}</div>
+                            <div className="score-label">Success Score</div>
+                        </div>
+                    </div>
+                </div>
             ) : (
-                <p>No score available.</p>
+                <p className="no-score">No score available.</p>
             )}
+            <button onClick={() => window.location.href = '/quiz'}>Predict Again</button>
         </div>
     )
 }
